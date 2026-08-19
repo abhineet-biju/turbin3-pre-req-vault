@@ -88,7 +88,7 @@ describe("pre-req-vault", () => {
       })
       .rpc();
 
-    confirmTx(tx);
+    await confirmTx(tx);
 
     const finalBalanceVault = await provider.connection.getBalance(vaultPda);
     const finalBalanceUser = await provider.connection.getBalance(user);
@@ -112,8 +112,11 @@ describe("pre-req-vault", () => {
       applicationProgram,
     )[0];
 
+    //Github username to send to registration program during CPI
+    const GITHUB_USERNAME = "abhineet-biju";
+
     const tx = await program.methods
-      .withdraw(new BN(withdrawAmount))
+      .withdraw(new BN(withdrawAmount), GITHUB_USERNAME)
       .accountsStrict({
         user: user,
         vaultState: vaultStatePda,
@@ -124,11 +127,14 @@ describe("pre-req-vault", () => {
       })
       .rpc();
 
-    confirmTx(tx);
+    await confirmTx(tx);
 
     const finalBalanceVault = await provider.connection.getBalance(vaultPda);
     const finalBalanceUser = await provider.connection.getBalance(user);
+    const applicationAccountInfo =
+      await provider.connection.getAccountInfo(applicationAccount);
 
+    expect(applicationAccountInfo).to.not.be.null;
     expect(finalBalanceVault).to.equal(initialVaultBalance - withdrawAmount);
     expect(finalBalanceUser).to.be.greaterThan(intialUserBalance);
   });
@@ -146,7 +152,7 @@ describe("pre-req-vault", () => {
       })
       .rpc();
 
-    confirmTx(tx);
+    await confirmTx(tx);
 
     expect(await provider.connection.getBalance(vaultPda)).to.equal(0);
 
